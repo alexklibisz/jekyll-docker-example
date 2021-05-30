@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:
+  # Create the site.
+  new:
+    container_name: new
+    image: jekyll/jekyll:4.0
+    command: jekyll new site
+    volumes:
+      - ".:/srv/jekyll"
+
+  # Local development server with automatic recompilation.
+  dev:
+    container_name: dev
+    image: jekyll/jekyll:4.0
+    volumes:
+      - "./site:/srv/jekyll"
+    command: 
+      - "/bin/bash"
+      - "-ec"
+      - |
+          bundle update
+          bundle exec jekyll serve --host 0.0.0.0
+    ports:
+      - "4000:4000/tcp"
+
+  # Build site for publication. Output is in site/_site.
+  build:
+    container_name: build
+    image: jekyll/jekyll:4.0
+    volumes:
+      - "./site:/srv/jekyll:z"
+    command:
+      - "/bin/bash"
+      - "-ec"
+      - |
+          bundle install
+          bundle exec jekyll build
+          ls site/_site
+    environment:
+      - JEKYLL_ENV=production
+    privileged: true
